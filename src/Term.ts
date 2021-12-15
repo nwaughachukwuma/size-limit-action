@@ -1,6 +1,4 @@
 import { exec } from "@actions/exec";
-import hasYarn from "has-yarn";
-import hasPNPM from "has-pnpm";
 
 const INSTALL_STEP = "install";
 const BUILD_STEP = "build";
@@ -14,11 +12,7 @@ class Term {
     windowsVerbatimArguments?: boolean,
     directory?: string
   ): Promise<{ status: number; output: string }> {
-    const manager = hasYarn(directory)
-      ? "yarn"
-      : hasPNPM(directory)
-      ? "pnpm"
-      : "npm";
+    const manager = "pnpm";
     let output = "";
 
     if (branch) {
@@ -44,7 +38,7 @@ class Term {
       });
     }
 
-    const status = await exec("npx size-limit --json", [], {
+    const status = await exec("pnpx size-limit --json", [], {
       windowsVerbatimArguments,
       ignoreReturnCode: true,
       listeners: {
