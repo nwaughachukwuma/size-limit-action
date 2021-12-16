@@ -10,9 +10,9 @@ class Term {
     buildScript?: string,
     cleanScript?: string,
     windowsVerbatimArguments?: boolean,
-    directory?: string
+    directory: string = process.cwd()
   ): Promise<{ status: number; output: string }> {
-    const manager = "pnpm";
+    const manager = "pnpm"; // we can extend this later with has-yarn|pnpm
     let output = "";
 
     if (branch) {
