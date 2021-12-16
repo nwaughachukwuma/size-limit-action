@@ -2096,13 +2096,15 @@ function run() {
             const skipStep = core_1.getInput("skip_step");
             const buildScript = core_1.getInput("build_script");
             const cleanScript = core_1.getInput("clean_script");
-            const directory = core_1.getInput("directory") || process.cwd();
+            const directory = core_1.getInput("directory");
             const windowsVerbatimArguments = core_1.getInput("windows_verbatim_arguments") === "true" ? true : false;
             const octokit = new github_1.GitHub(token);
             const term = new Term_1.default();
             const limit = new SizeLimit_1.default();
-            const { status, output } = yield term.execSizeLimit(null, skipStep, buildScript, cleanScript, windowsVerbatimArguments, directory);
-            const { output: baseOutput } = yield term.execSizeLimit(pr.base.ref, null, buildScript, cleanScript, windowsVerbatimArguments, directory);
+            const execSLBranchPromise = term.execSizeLimit(null, skipStep, buildScript, cleanScript, windowsVerbatimArguments, directory);
+            const execSLTrunkPromise = term.execSizeLimit(pr.base.ref, null, buildScript, cleanScript, windowsVerbatimArguments, directory);
+            const result = yield Promise.all([execSLBranchPromise, execSLTrunkPromise]);
+            const [{ status, output }, { output: baseOutput }] = result;
             let base;
             let current;
             try {
@@ -2740,31 +2742,6 @@ exports.getUserAgent = getUserAgent;
 /***/ (function(module) {
 
 module.exports = {"name":"@octokit/rest","version":"16.43.1","publishConfig":{"access":"public"},"description":"GitHub REST API client for Node.js","keywords":["octokit","github","rest","api-client"],"author":"Gregor Martynus (https://github.com/gr2m)","contributors":[{"name":"Mike de Boer","email":"info@mikedeboer.nl"},{"name":"Fabian Jakobs","email":"fabian@c9.io"},{"name":"Joe Gallo","email":"joe@brassafrax.com"},{"name":"Gregor Martynus","url":"https://github.com/gr2m"}],"repository":"https://github.com/octokit/rest.js","dependencies":{"@octokit/auth-token":"^2.4.0","@octokit/plugin-paginate-rest":"^1.1.1","@octokit/plugin-request-log":"^1.0.0","@octokit/plugin-rest-endpoint-methods":"2.4.0","@octokit/request":"^5.2.0","@octokit/request-error":"^1.0.2","atob-lite":"^2.0.0","before-after-hook":"^2.0.0","btoa-lite":"^1.0.0","deprecation":"^2.0.0","lodash.get":"^4.4.2","lodash.set":"^4.3.2","lodash.uniq":"^4.5.0","octokit-pagination-methods":"^1.1.0","once":"^1.4.0","universal-user-agent":"^4.0.0"},"devDependencies":{"@gimenete/type-writer":"^0.1.3","@octokit/auth":"^1.1.1","@octokit/fixtures-server":"^5.0.6","@octokit/graphql":"^4.2.0","@types/node":"^13.1.0","bundlesize":"^0.18.0","chai":"^4.1.2","compression-webpack-plugin":"^3.1.0","cypress":"^3.0.0","glob":"^7.1.2","http-proxy-agent":"^4.0.0","lodash.camelcase":"^4.3.0","lodash.merge":"^4.6.1","lodash.upperfirst":"^4.3.1","lolex":"^5.1.2","mkdirp":"^1.0.0","mocha":"^7.0.1","mustache":"^4.0.0","nock":"^11.3.3","npm-run-all":"^4.1.2","nyc":"^15.0.0","prettier":"^1.14.2","proxy":"^1.0.0","semantic-release":"^17.0.0","sinon":"^8.0.0","sinon-chai":"^3.0.0","sort-keys":"^4.0.0","string-to-arraybuffer":"^1.0.0","string-to-jsdoc-comment":"^1.0.0","typescript":"^3.3.1","webpack":"^4.0.0","webpack-bundle-analyzer":"^3.0.0","webpack-cli":"^3.0.0"},"types":"index.d.ts","scripts":{"coverage":"nyc report --reporter=html && open coverage/index.html","lint":"prettier --check '{lib,plugins,scripts,test}/**/*.{js,json,ts}' 'docs/*.{js,json}' 'docs/src/**/*' index.js README.md package.json","lint:fix":"prettier --write '{lib,plugins,scripts,test}/**/*.{js,json,ts}' 'docs/*.{js,json}' 'docs/src/**/*' index.js README.md package.json","pretest":"npm run -s lint","test":"nyc mocha test/mocha-node-setup.js \"test/*/**/*-test.js\"","test:browser":"cypress run --browser chrome","build":"npm-run-all build:*","build:ts":"npm run -s update-endpoints:typescript","prebuild:browser":"mkdirp dist/","build:browser":"npm-run-all build:browser:*","build:browser:development":"webpack --mode development --entry . --output-library=Octokit --output=./dist/octokit-rest.js --profile --json > dist/bundle-stats.json","build:browser:production":"webpack --mode production --entry . --plugin=compression-webpack-plugin --output-library=Octokit --output-path=./dist --output-filename=octokit-rest.min.js --devtool source-map","generate-bundle-report":"webpack-bundle-analyzer dist/bundle-stats.json --mode=static --no-open --report dist/bundle-report.html","update-endpoints":"npm-run-all update-endpoints:*","update-endpoints:fetch-json":"node scripts/update-endpoints/fetch-json","update-endpoints:typescript":"node scripts/update-endpoints/typescript","prevalidate:ts":"npm run -s build:ts","validate:ts":"tsc --target es6 --noImplicitAny index.d.ts","postvalidate:ts":"tsc --noEmit --target es6 test/typescript-validate.ts","start-fixtures-server":"octokit-fixtures-server"},"license":"MIT","files":["index.js","index.d.ts","lib","plugins"],"nyc":{"ignore":["test"]},"release":{"publish":["@semantic-release/npm",{"path":"@semantic-release/github","assets":["dist/*","!dist/*.map.gz"]}]},"bundlesize":[{"path":"./dist/octokit-rest.min.js.gz","maxSize":"33 kB"}]};
-
-/***/ }),
-
-/***/ 217:
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-"use strict";
-
-const fs_1 = __webpack_require__(747);
-const path_1 = __webpack_require__(622);
-const pnpmLockFiles = ['shrinkwrap.yaml', 'pnpm-lock.yaml'];
-/**
- * Check if a project is using pnpm.
- *
- * @param {string} [cwd=process.cwd()] Current working directory
- * @returns {boolean}
- */
-function hasPNPM(cwd = process.cwd()) {
-    return pnpmLockFiles.some(lockFile => {
-        const lockFilePath = path_1.resolve(cwd, lockFile);
-        return fs_1.existsSync(lockFilePath);
-    });
-}
-module.exports = hasPNPM;
-
 
 /***/ }),
 
@@ -10585,23 +10562,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const exec_1 = __webpack_require__(986);
-const has_yarn_1 = __importDefault(__webpack_require__(931));
-const has_pnpm_1 = __importDefault(__webpack_require__(217));
 const INSTALL_STEP = "install";
 const BUILD_STEP = "build";
 class Term {
-    execSizeLimit(branch, skipStep, buildScript, cleanScript, windowsVerbatimArguments, directory) {
+    execSizeLimit(branch, skipStep, buildScript, cleanScript, windowsVerbatimArguments, directory = process.cwd()) {
         return __awaiter(this, void 0, void 0, function* () {
-            const manager = has_yarn_1.default(directory)
-                ? "yarn"
-                : has_pnpm_1.default(directory)
-                    ? "pnpm"
-                    : "npm";
+            const manager = "pnpm"; // we can extend this later with has-yarn|pnpm
             let output = "";
             if (branch) {
                 try {
@@ -10623,7 +10591,7 @@ class Term {
                     cwd: directory
                 });
             }
-            const status = yield exec_1.exec("npx size-limit --json", [], {
+            const status = yield exec_1.exec("pnpx size-limit --json", [], {
                 windowsVerbatimArguments,
                 ignoreReturnCode: true,
                 listeners: {
@@ -26719,23 +26687,6 @@ function hasNextPage (link) {
   deprecate(`octokit.hasNextPage() – You can use octokit.paginate or async iterators instead: https://github.com/octokit/rest.js#pagination.`)
   return getPageLinks(link).next
 }
-
-
-/***/ }),
-
-/***/ 931:
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-"use strict";
-
-const path = __webpack_require__(622);
-const fs = __webpack_require__(747);
-
-const hasYarn = (cwd = process.cwd()) => fs.existsSync(path.resolve(cwd, 'yarn.lock'));
-
-module.exports = hasYarn;
-// TODO: Remove this for the next major release
-module.exports.default = hasYarn;
 
 
 /***/ }),
