@@ -50,7 +50,7 @@ async function run() {
     const term = new Term();
     const limit = new SizeLimit();
 
-    const { status, output } = await term.execSizeLimit(
+    const { status, output, definedSizeLimit } = await term.execSizeLimit(
       null,
       skipStep,
       buildScript,
@@ -69,12 +69,12 @@ async function run() {
 
     let base;
     let current;
+    let definedSize;
 
     try {
       base = limit.parseResults(baseOutput);
       current = limit.parseResults(output);
-
-      console.log(">>>>>>>", { base, current, baseOutput, output });
+      definedSize = limit.parseResults(definedSizeLimit);
     } catch (error) {
       console.log(
         "Error parsing size-limit output. The output should be a json."
@@ -83,8 +83,11 @@ async function run() {
     }
 
     const body = [
-      SIZE_LIMIT_HEADING,
-      table(limit.formatResults(base, current))
+      `${SIZE_LIMIT_HEADING} (vs trunk)`,
+      table(limit.formatResults(base, current)),
+      `--`,
+      `${SIZE_LIMIT_HEADING} (vs defined limits)`,
+      table(limit.formatResults(definedSize, current))
     ].join("\r\n");
 
     const sizeLimitComment = await fetchPreviousComment(octokit, repo, pr);

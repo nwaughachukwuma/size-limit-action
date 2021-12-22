@@ -1,4 +1,16 @@
 import { exec } from "@actions/exec";
+import fs from "fs";
+import path from "path";
+
+let definedSizeLimit = "";
+try {
+  const pkg = JSON.parse(
+    fs.readFileSync(path.resolve(process.cwd(), "./package.json"), "utf8")
+  );
+  definedSizeLimit = pkg["size-limit"];
+} catch (error) {
+  console.log(`error getting definedSizes: ${error}`);
+}
 
 const INSTALL_STEP = "install";
 const BUILD_STEP = "build";
@@ -11,7 +23,7 @@ class Term {
     cleanScript?: string,
     windowsVerbatimArguments?: boolean,
     directory?: string
-  ): Promise<{ status: number; output: string }> {
+  ): Promise<{ status: number; output: string; definedSizeLimit?: string }> {
     const manager = "pnpm"; // we can extend this later with has-yarn|pnpm
     let output = "";
 
@@ -57,7 +69,8 @@ class Term {
 
     return {
       status,
-      output
+      output,
+      definedSizeLimit
     };
   }
 }

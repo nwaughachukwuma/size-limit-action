@@ -2101,22 +2101,25 @@ function run() {
             const octokit = new github_1.GitHub(token);
             const term = new Term_1.default();
             const limit = new SizeLimit_1.default();
-            const { status, output } = yield term.execSizeLimit(null, skipStep, buildScript, cleanScript, windowsVerbatimArguments, directory);
+            const { status, output, definedSizeLimit } = yield term.execSizeLimit(null, skipStep, buildScript, cleanScript, windowsVerbatimArguments, directory);
             const { output: baseOutput } = yield term.execSizeLimit(pr.base.ref, null, buildScript, cleanScript, windowsVerbatimArguments, directory);
             let base;
             let current;
+            let definedSize;
             try {
                 base = limit.parseResults(baseOutput);
                 current = limit.parseResults(output);
-                console.log(">>>>>>>", { base, current, baseOutput, output });
+                definedSize = limit.parseResults(definedSizeLimit);
             }
             catch (error) {
                 console.log("Error parsing size-limit output. The output should be a json.");
                 throw error;
             }
             const body = [
-                SIZE_LIMIT_HEADING,
-                markdown_table_1.default(limit.formatResults(base, current))
+                `${SIZE_LIMIT_HEADING} (vs trunk)`,
+                markdown_table_1.default(limit.formatResults(base, current)),
+                `${SIZE_LIMIT_HEADING} (vs defined limits)`,
+                markdown_table_1.default(limit.formatResults(definedSize, current))
             ].join("\r\n");
             const sizeLimitComment = yield fetchPreviousComment(octokit, repo, pr);
             if (!sizeLimitComment) {
@@ -10564,8 +10567,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const exec_1 = __webpack_require__(986);
+const fs_1 = __importDefault(__webpack_require__(747));
+const path_1 = __importDefault(__webpack_require__(622));
+let definedSizeLimit = "";
+try {
+    const pkg = JSON.parse(fs_1.default.readFileSync(path_1.default.resolve(process.cwd(), "./package.json"), "utf8"));
+    definedSizeLimit = pkg["size-limit"];
+}
+catch (error) {
+    console.log(`error getting definedSizes: ${error}`);
+}
 const INSTALL_STEP = "install";
 const BUILD_STEP = "build";
 class Term {
@@ -10610,7 +10626,8 @@ class Term {
             }
             return {
                 status,
-                output
+                output,
+                definedSizeLimit
             };
         });
     }
