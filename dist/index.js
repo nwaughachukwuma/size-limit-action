@@ -2096,15 +2096,13 @@ function run() {
             const skipStep = core_1.getInput("skip_step");
             const buildScript = core_1.getInput("build_script");
             const cleanScript = core_1.getInput("clean_script");
-            const directory = core_1.getInput("directory");
+            const directory = core_1.getInput("directory") || process.cwd();
             const windowsVerbatimArguments = core_1.getInput("windows_verbatim_arguments") === "true" ? true : false;
             const octokit = new github_1.GitHub(token);
             const term = new Term_1.default();
             const limit = new SizeLimit_1.default();
-            const execSLBranchPromise = term.execSizeLimit(null, skipStep, buildScript, cleanScript, windowsVerbatimArguments, directory);
-            const execSLTrunkPromise = term.execSizeLimit(pr.base.ref, null, buildScript, cleanScript, windowsVerbatimArguments, directory);
-            const result = yield Promise.all([execSLBranchPromise, execSLTrunkPromise]);
-            const [{ status, output }, { output: baseOutput }] = result;
+            const { status, output } = yield term.execSizeLimit(null, skipStep, buildScript, cleanScript, windowsVerbatimArguments, directory);
+            const { output: baseOutput } = yield term.execSizeLimit(pr.base.ref, null, buildScript, cleanScript, windowsVerbatimArguments, directory);
             let base;
             let current;
             try {
@@ -10571,7 +10569,7 @@ const exec_1 = __webpack_require__(986);
 const INSTALL_STEP = "install";
 const BUILD_STEP = "build";
 class Term {
-    execSizeLimit(branch, skipStep, buildScript, cleanScript, windowsVerbatimArguments, directory = process.cwd()) {
+    execSizeLimit(branch, skipStep, buildScript, cleanScript, windowsVerbatimArguments, directory) {
         return __awaiter(this, void 0, void 0, function* () {
             const manager = "pnpm"; // we can extend this later with has-yarn|pnpm
             let output = "";
