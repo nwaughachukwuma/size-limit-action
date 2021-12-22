@@ -9366,7 +9366,7 @@ class SizeLimit {
             return `+${formatted}% 🔺`;
         }
         if (value === 0) {
-            return `${formatted}%`;
+            return `${formatted}% 👍`;
         }
         return `${formatted}% 🔽`;
     }
