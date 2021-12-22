@@ -2101,6 +2101,7 @@ function run() {
             const octokit = new github_1.GitHub(token);
             const term = new Term_1.default();
             const limit = new SizeLimit_1.default();
+            console.log({ pr, base: pr.base, ref: pr.base.ref });
             const execSLBranchPromise = term.execSizeLimit(null, skipStep, buildScript, cleanScript, windowsVerbatimArguments, directory);
             const execSLTrunkPromise = term.execSizeLimit(pr.base.ref, null, buildScript, cleanScript, windowsVerbatimArguments, directory);
             const result = yield Promise.all([execSLBranchPromise, execSLTrunkPromise]);

@@ -50,6 +50,8 @@ async function run() {
     const term = new Term();
     const limit = new SizeLimit();
 
+    console.log({ pr, base: pr.base, ref: pr.base.ref });
+
     const execSLBranchPromise = term.execSizeLimit(
       null,
       skipStep,
