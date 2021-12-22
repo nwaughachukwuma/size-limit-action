@@ -54,7 +54,7 @@ class SizeLimit {
     }
 
     if (value === 0) {
-      return `${formatted}%`;
+      return `${formatted}% 👍`;
     }
 
     return `${formatted}% 🔽`;
