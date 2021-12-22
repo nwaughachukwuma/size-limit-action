@@ -2118,6 +2118,7 @@ function run() {
             const body = [
                 `${SIZE_LIMIT_HEADING} (vs trunk)`,
                 markdown_table_1.default(limit.formatResults(base, current)),
+                `--`,
                 `${SIZE_LIMIT_HEADING} (vs defined limits)`,
                 markdown_table_1.default(limit.formatResults(definedSize, current))
             ].join("\r\n");
@@ -9362,14 +9363,13 @@ class SizeLimit {
         if (base === 0) {
             return "+100% 🔺";
         }
-        console.log(">>>>>>>>>", { base, current });
         const value = ((current - base) / base) * 100;
         const formatted = (Math.sign(value) * Math.ceil(Math.abs(value) * 100)) / 100;
         if (value > 0) {
             return `+${formatted}% 🔺`;
         }
         if (value === 0) {
-            return `${formatted}% 👍`;
+            return `${formatted}%`;
         }
         return `${formatted}% 🔽`;
     }
@@ -9410,14 +9410,12 @@ class SizeLimit {
     formatResults(base, current) {
         const names = [...new Set([...Object.keys(base), ...Object.keys(current)])];
         const isSize = names.some((name) => current[name] && current[name].total === undefined);
-        console.log(">>>>>>>>", { isSize, base, current });
         const header = isSize
             ? SizeLimit.SIZE_RESULTS_HEADER
             : SizeLimit.TIME_RESULTS_HEADER;
         const fields = names.map((name) => {
             const baseResult = base[name] || EmptyResult;
             const currentResult = current[name] || EmptyResult;
-            console.log(">>>>>>>", { name, baseResult, currentResult });
             if (isSize) {
                 return this.formatSizeResult(name, baseResult, currentResult);
             }
