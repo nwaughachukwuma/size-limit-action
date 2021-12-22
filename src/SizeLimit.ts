@@ -45,6 +45,8 @@ class SizeLimit {
       return "+100% 🔺";
     }
 
+    console.log(">>>>>>>>>", { base, current });
+
     const value = ((current - base) / base) * 100;
     const formatted =
       (Math.sign(value) * Math.ceil(Math.abs(value) * 100)) / 100;
@@ -140,12 +142,15 @@ class SizeLimit {
     const isSize = names.some(
       (name: string) => current[name] && current[name].total === undefined
     );
+    console.log(">>>>>>>>", { isSize, base, current });
     const header = isSize
       ? SizeLimit.SIZE_RESULTS_HEADER
       : SizeLimit.TIME_RESULTS_HEADER;
     const fields = names.map((name: string) => {
       const baseResult = base[name] || EmptyResult;
       const currentResult = current[name] || EmptyResult;
+
+      console.log(">>>>>>>", { name, baseResult, currentResult });
 
       if (isSize) {
         return this.formatSizeResult(name, baseResult, currentResult);

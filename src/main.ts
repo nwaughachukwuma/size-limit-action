@@ -50,8 +50,6 @@ async function run() {
     const term = new Term();
     const limit = new SizeLimit();
 
-    console.log({ pr, base: pr.base, ref: pr.base.ref });
-
     const execSLBranchPromise = term.execSizeLimit(
       null,
       skipStep,
@@ -78,6 +76,8 @@ async function run() {
     try {
       base = limit.parseResults(baseOutput);
       current = limit.parseResults(output);
+
+      console.log(">>>>>>>", { base, current, baseOutput, output });
     } catch (error) {
       console.log(
         "Error parsing size-limit output. The output should be a json."

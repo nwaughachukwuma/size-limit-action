@@ -2101,7 +2101,6 @@ function run() {
             const octokit = new github_1.GitHub(token);
             const term = new Term_1.default();
             const limit = new SizeLimit_1.default();
-            console.log({ pr, base: pr.base, ref: pr.base.ref });
             const execSLBranchPromise = term.execSizeLimit(null, skipStep, buildScript, cleanScript, windowsVerbatimArguments, directory);
             const execSLTrunkPromise = term.execSizeLimit(pr.base.ref, null, buildScript, cleanScript, windowsVerbatimArguments, directory);
             const result = yield Promise.all([execSLBranchPromise, execSLTrunkPromise]);
@@ -2111,6 +2110,7 @@ function run() {
             try {
                 base = limit.parseResults(baseOutput);
                 current = limit.parseResults(output);
+                console.log(">>>>>>>", { base, current, baseOutput, output });
             }
             catch (error) {
                 console.log("Error parsing size-limit output. The output should be a json.");
@@ -9361,6 +9361,7 @@ class SizeLimit {
         if (base === 0) {
             return "+100% 🔺";
         }
+        console.log(">>>>>>>>>", { base, current });
         const value = ((current - base) / base) * 100;
         const formatted = (Math.sign(value) * Math.ceil(Math.abs(value) * 100)) / 100;
         if (value > 0) {
@@ -9408,12 +9409,14 @@ class SizeLimit {
     formatResults(base, current) {
         const names = [...new Set([...Object.keys(base), ...Object.keys(current)])];
         const isSize = names.some((name) => current[name] && current[name].total === undefined);
+        console.log(">>>>>>>>", { isSize, base, current });
         const header = isSize
             ? SizeLimit.SIZE_RESULTS_HEADER
             : SizeLimit.TIME_RESULTS_HEADER;
         const fields = names.map((name) => {
             const baseResult = base[name] || EmptyResult;
             const currentResult = current[name] || EmptyResult;
+            console.log(">>>>>>>", { name, baseResult, currentResult });
             if (isSize) {
                 return this.formatSizeResult(name, baseResult, currentResult);
             }
