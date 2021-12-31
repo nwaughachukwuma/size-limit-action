@@ -2077,7 +2077,7 @@ const SIZE_LIMIT_HEADING = `## size-limit report 📦 `;
 function fetchPreviousComment(octokit, repo, pr) {
     return __awaiter(this, void 0, void 0, function* () {
         // TODO: replace with octokit.issues.listComments when upgraded to v17
-        const commentList = yield octokit.paginate("GET /repos/:owner/:repo/issues/:issue_number/comments", Object.assign(Object.assign({}, repo), { 
+        const commentList = yield octokit.paginate("GET /repos/:owner/:repo/issues/:issue_number/comments", Object.assign(Object.assign({}, repo), {
             // eslint-disable-next-line camelcase
             issue_number: pr.number }));
         const sizeLimitComment = commentList.find(comment => comment.body.startsWith(SIZE_LIMIT_HEADING));
@@ -2105,22 +2105,27 @@ function run() {
             const { output: baseOutput } = yield term.execSizeLimit(pr.base.ref, null, buildScript, cleanScript, windowsVerbatimArguments, directory);
             let base;
             let current;
+            let definedSize;
             try {
                 base = limit.parseResults(baseOutput);
                 current = limit.parseResults(output);
+                definedSize = limit.parseResults(definedSizeLimit);
             }
             catch (error) {
                 console.log("Error parsing size-limit output. The output should be a json.");
                 throw error;
             }
             const body = [
-                SIZE_LIMIT_HEADING,
-                markdown_table_1.default(limit.formatResults(base, current))
+                `${SIZE_LIMIT_HEADING} (vs trunk)`,
+                markdown_table_1.default(limit.formatResults(base, current)),
+                `--`,
+                `${SIZE_LIMIT_HEADING} (vs defined limits)`,
+                markdown_table_1.default(limit.formatResults(definedSize, current))
             ].join("\r\n");
             const sizeLimitComment = yield fetchPreviousComment(octokit, repo, pr);
             if (!sizeLimitComment) {
                 try {
-                    yield octokit.issues.createComment(Object.assign(Object.assign({}, repo), { 
+                    yield octokit.issues.createComment(Object.assign(Object.assign({}, repo), {
                         // eslint-disable-next-line camelcase
                         issue_number: pr.number, body }));
                 }
@@ -2130,7 +2135,7 @@ function run() {
             }
             else {
                 try {
-                    yield octokit.issues.updateComment(Object.assign(Object.assign({}, repo), { 
+                    yield octokit.issues.updateComment(Object.assign(Object.assign({}, repo), {
                         // eslint-disable-next-line camelcase
                         comment_id: sizeLimitComment.id, body }));
                 }
@@ -10623,7 +10628,7 @@ class Term {
                     cwd: directory
                 });
             }
-            const status = yield exec_1.exec("npx size-limit --json", [], {
+            const status = yield exec_1.exec("pnpx size-limit --json", [], {
                 windowsVerbatimArguments,
                 ignoreReturnCode: true,
                 listeners: {
@@ -10640,7 +10645,8 @@ class Term {
             }
             return {
                 status,
-                output
+                output,
+                definedSizeLimit
             };
         });
     }
@@ -26719,23 +26725,6 @@ function hasNextPage (link) {
   deprecate(`octokit.hasNextPage() – You can use octokit.paginate or async iterators instead: https://github.com/octokit/rest.js#pagination.`)
   return getPageLinks(link).next
 }
-
-
-/***/ }),
-
-/***/ 931:
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-"use strict";
-
-const path = __webpack_require__(622);
-const fs = __webpack_require__(747);
-
-const hasYarn = (cwd = process.cwd()) => fs.existsSync(path.resolve(cwd, 'yarn.lock'));
-
-module.exports = hasYarn;
-// TODO: Remove this for the next major release
-module.exports.default = hasYarn;
 
 
 /***/ }),

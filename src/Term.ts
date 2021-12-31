@@ -1,6 +1,18 @@
 import { exec } from "@actions/exec";
 import hasYarn from "has-yarn";
 import hasPNPM from "has-pnpm";
+import fs from "fs";
+import path from "path";
+
+let definedSizeLimit = "";
+try {
+  const pkg = JSON.parse(
+    fs.readFileSync(path.resolve(process.cwd(), "./package.json"), "utf8")
+  );
+  definedSizeLimit = pkg["size-limit"];
+} catch (error) {
+  console.log(`error getting definedSizes: ${error}`);
+}
 
 const INSTALL_STEP = "install";
 const BUILD_STEP = "build";
@@ -13,7 +25,7 @@ class Term {
     cleanScript?: string,
     windowsVerbatimArguments?: boolean,
     directory?: string
-  ): Promise<{ status: number; output: string }> {
+  ): Promise<{ status: number; output: string; definedSizeLimit?: string }> {
     const manager = hasYarn(directory)
       ? "yarn"
       : hasPNPM(directory)
@@ -44,7 +56,7 @@ class Term {
       });
     }
 
-    const status = await exec("npx size-limit --json", [], {
+    const status = await exec("pnpx size-limit --json", [], {
       windowsVerbatimArguments,
       ignoreReturnCode: true,
       listeners: {
@@ -63,7 +75,8 @@ class Term {
 
     return {
       status,
-      output
+      output,
+      definedSizeLimit
     };
   }
 }
