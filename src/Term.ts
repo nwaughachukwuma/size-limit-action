@@ -1,4 +1,6 @@
 import { exec } from "@actions/exec";
+import hasYarn from "has-yarn";
+import hasPNPM from "has-pnpm";
 import fs from "fs";
 import path from "path";
 
@@ -24,7 +26,11 @@ class Term {
     windowsVerbatimArguments?: boolean,
     directory?: string
   ): Promise<{ status: number; output: string; definedSizeLimit?: string }> {
-    const manager = "pnpm"; // we can extend this later with has-yarn|pnpm
+    const manager = hasYarn(directory)
+      ? "yarn"
+      : hasPNPM(directory)
+      ? "pnpm"
+      : "npm";
     let output = "";
 
     if (branch) {
